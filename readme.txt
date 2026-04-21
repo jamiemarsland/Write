@@ -30,7 +30,7 @@ Built on the WordPress Interactivity API with no build step required.
 
 == Installation ==
 
-1. Upload the `blogger-writer` folder to `/wp-content/plugins/`
+1. Upload the `write` folder to `/wp-content/plugins/`
 2. Activate the plugin through the Plugins menu
 3. Visit /write/ on your site to start writing
 

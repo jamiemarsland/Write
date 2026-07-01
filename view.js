@@ -1,5 +1,5 @@
 /**
- * Blogger Writer — Interactivity API Store
+ * Jamie's Distraction-Free Writer — Interactivity API Store
  *
  * A distraction-free front-end writing experience.
  * Creates WordPress posts with proper block markup via the REST API.
@@ -411,13 +411,18 @@ function insertNewBlock( tag ) {
 	state.showSlashMenu = false;
 }
 
-const { state } = store( 'blogger-writer', {
+const { state } = store( 'jamies-distraction-free-writer', {
 	state: {
 		formatBold: false,
 		formatItalic: false,
 		formatHeading: false,
 		formatQuote: false,
 		imageUrl: '',
+		// Hide "Save draft" once the post is (or has just been) published —
+		// saving a published post as a draft would unpublish it.
+		get hideSaveDraft() {
+			return state.postStatus === 'publish' || state.isPublished;
+		},
 	},
 
 	actions: {
@@ -474,7 +479,7 @@ const { state } = store( 'blogger-writer', {
 
 		checkFormatting() {
 			// Check for slash commands first.
-			const { actions } = store( 'blogger-writer' );
+			const { actions } = store( 'jamies-distraction-free-writer' );
 			actions.checkSlashCommand();
 
 			const sel = window.getSelection();
@@ -544,7 +549,7 @@ const { state } = store( 'blogger-writer', {
 					if ( target ) {
 						// Map menu items to actions by their label text.
 						const label = target.querySelector( 'strong' )?.textContent?.toLowerCase();
-						const { actions: a } = store( 'blogger-writer' );
+						const { actions: a } = store( 'jamies-distraction-free-writer' );
 						const actionMap = {
 							heading: a.insertHeading,
 							image: a.insertImage,
@@ -945,7 +950,7 @@ const { state } = store( 'blogger-writer', {
 		handleVideoKeyDown( event ) {
 			if ( event.key === 'Enter' ) {
 				event.preventDefault();
-				const { actions } = store( 'blogger-writer' );
+				const { actions } = store( 'jamies-distraction-free-writer' );
 				actions.insertVideoEmbed();
 			}
 		},
@@ -1137,6 +1142,8 @@ async function savePost( postStatus ) {
 
 		if ( postStatus === 'publish' ) {
 			state.isPublished = true;
+			// The post now exists and is published, so the primary action becomes "Update".
+			state.publishLabel = 'Update';
 			state.message = isUpdate ? 'Updated!' : 'Published!';
 			setTimeout( () => {
 				window.location.href = post.link;

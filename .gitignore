@@ -1,0 +1,10 @@
+# Local pressship SVN working copy — not part of the source
+.pressship-svn/
+
+# OS / editor cruft
+.DS_Store
+
+# Build/packaging artifacts
+node_modules/
+*.log
+*.zip

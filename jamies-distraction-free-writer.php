@@ -1,13 +1,15 @@
 <?php
 /**
- * Plugin Name: Write
- * Description: A beautiful, distraction-free front-end writing experience. Create posts without touching wp-admin.
- * Version: 1.0.0
+ * Plugin Name: Jamie's Distraction-Free Writer
+ * Description: A beautiful, distraction-free front-end writing experience. Create and edit posts from a clean /write/ page without touching wp-admin.
+ * Version: 1.0.3
  * Requires at least: 6.5
  * Requires PHP: 8.0
- * Author: Jamie
+ * Author: Jamie Marsland
+ * Author URI: https://profiles.wordpress.org/jamiemarsland/
  * License: GPL-2.0-or-later
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
+ * Text Domain: jamies-distraction-free-writer
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -18,10 +20,10 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Register the /write/ rewrite endpoint.
  */
 add_action( 'init', function () {
-	add_rewrite_rule( '^write/?$', 'index.php?blogger_write=1', 'top' );
+	add_rewrite_rule( '^write/?$', 'index.php?jdfw_write=1', 'top' );
 
 	wp_register_script_module(
-		'blogger-writer/view',
+		'jamies-distraction-free-writer/view',
 		plugins_url( 'view.js', __FILE__ ),
 		array( '@wordpress/interactivity' ),
 		'1.0.0'
@@ -29,7 +31,7 @@ add_action( 'init', function () {
 } );
 
 add_filter( 'query_vars', function ( $vars ) {
-	$vars[] = 'blogger_write';
+	$vars[] = 'jdfw_write';
 	return $vars;
 } );
 
@@ -37,7 +39,7 @@ add_filter( 'query_vars', function ( $vars ) {
  * Flush rewrite rules on activation.
  */
 register_activation_hook( __FILE__, function () {
-	add_rewrite_rule( '^write/?$', 'index.php?blogger_write=1', 'top' );
+	add_rewrite_rule( '^write/?$', 'index.php?jdfw_write=1', 'top' );
 	flush_rewrite_rules();
 } );
 
@@ -49,7 +51,7 @@ register_deactivation_hook( __FILE__, function () {
  * Serve the writing page template.
  */
 add_action( 'template_redirect', function () {
-	if ( ! get_query_var( 'blogger_write' ) ) {
+	if ( ! get_query_var( 'jdfw_write' ) ) {
 		return;
 	}
 
@@ -65,10 +67,10 @@ add_action( 'template_redirect', function () {
 	}
 
 	// Enqueue assets.
-	wp_enqueue_script_module( 'blogger-writer/view' );
+	wp_enqueue_script_module( 'jamies-distraction-free-writer/view' );
 	wp_enqueue_style( 'dashicons' );
 	wp_enqueue_style(
-		'blogger-writer',
+		'jamies-distraction-free-writer',
 		plugins_url( 'style.css', __FILE__ ),
 		array( 'dashicons' ),
 		'1.0.0'
@@ -107,13 +109,14 @@ add_action( 'template_redirect', function () {
 	}
 
 	// Seed Interactivity API state.
-	wp_interactivity_state( 'blogger-writer', array(
+	wp_interactivity_state( 'jamies-distraction-free-writer', array(
 		'restNonce'     => wp_create_nonce( 'wp_rest' ),
 		'postsEndpoint' => rest_url( 'wp/v2/posts' ),
 		'mediaEndpoint' => rest_url( 'wp/v2/media' ),
 		'homeUrl'       => home_url( '/' ),
 		'editPostId'    => $edit_post_id,
 		'postStatus'    => $post_status,
+		'publishLabel'  => $edit_post_id ? 'Update' : 'Publish',
 		'title'         => $edit_title,
 		'isSaving'      => false,
 		'isPublished'   => false,
@@ -137,32 +140,32 @@ add_action( 'template_redirect', function () {
 	) );
 
 	// Output the full page.
-	blogger_writer_template( $edit_title, $edit_content, $edit_post_id, $categories_data );
+	jdfw_template( $edit_title, $edit_content, $edit_post_id, $categories_data, $post_status );
 	exit;
 } );
 
 /**
  * Render the distraction-free writing page.
  */
-function blogger_writer_template( $edit_title = '', $edit_content = '', $edit_post_id = 0, $categories_data = array() ) {
+function jdfw_template( $edit_title = '', $edit_content = '', $edit_post_id = 0, $categories_data = array(), $post_status = 'new' ) {
 	?>
 <!DOCTYPE html>
 <html <?php language_attributes(); ?>>
 <head>
-	<meta charset="<?php bloginfo( 'charset' ); ?>">
+	<meta charset="<?php echo esc_attr( get_bloginfo( 'charset' ) ); ?>">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<title>Write — <?php bloginfo( 'name' ); ?></title>
+	<title>Write &mdash; <?php echo esc_html( get_bloginfo( 'name' ) ); ?></title>
 	<?php wp_head(); ?>
 </head>
 <body <?php body_class(); ?>>
 
-<div data-wp-interactive="blogger-writer" class="bw-app">
+<div data-wp-interactive="jamies-distraction-free-writer" class="bw-app">
 
 	<!-- Top bar -->
 	<header class="bw-topbar">
 		<a href="<?php echo esc_url( home_url( '/' ) ); ?>" class="bw-back" title="Back to site" data-wp-on--click="actions.handleBack">&larr;</a>
 		<button class="bw-help-toggle" data-wp-on--click="actions.toggleHelp" title="Shortcuts">?</button>
-		<div class="bw-help-popover" data-wp-bind--hidden="!state.showHelp">
+		<div class="bw-help-popover" data-wp-bind--hidden="!state.showHelp" hidden>
 			<div class="bw-help-title">Tips</div>
 			<div class="bw-help-row"><kbd>/</kbd><span>Insert a heading, image, video, quote or divider</span></div>
 			<div class="bw-help-row"><kbd>Select text</kbd><span>Formatting toolbar appears</span></div>
@@ -174,12 +177,15 @@ function blogger_writer_template( $edit_title = '', $edit_content = '', $edit_po
 				class="bw-btn bw-btn-draft"
 				data-wp-on--click="actions.saveDraft"
 				data-wp-bind--disabled="state.isSaving"
+				data-wp-bind--hidden="state.hideSaveDraft"
+				<?php echo ( 'publish' === $post_status ) ? 'hidden' : ''; ?>
 			>Save draft</button>
 			<button
 				class="bw-btn bw-btn-publish"
 				data-wp-on--click="actions.publish"
 				data-wp-bind--disabled="state.isSaving"
-			><?php echo $edit_post_id ? 'Update' : 'Publish'; ?></button>
+				data-wp-text="state.publishLabel"
+			><?php echo esc_html( $edit_post_id ? 'Update' : 'Publish' ); ?></button>
 		</div>
 	</header>
 
@@ -212,6 +218,7 @@ function blogger_writer_template( $edit_title = '', $edit_content = '', $edit_po
 		class="bw-toolbar"
 		data-wp-bind--hidden="!state.showToolbar"
 		data-wp-on--mousedown="actions.preventToolbarBlur"
+		hidden
 	>
 		<button class="bw-tool" data-wp-on--click="actions.formatHeading" data-wp-class--bw-tool-active="state.formatHeading" title="Heading"><span class="dashicons dashicons-heading"></span></button>
 		<span class="bw-tool-divider"></span>
@@ -225,7 +232,7 @@ function blogger_writer_template( $edit_title = '', $edit_content = '', $edit_po
 	</div>
 
 	<!-- Link input popover -->
-	<div class="bw-link-popover" data-wp-bind--hidden="!state.showLinkInput">
+	<div class="bw-link-popover" data-wp-bind--hidden="!state.showLinkInput" hidden>
 		<input
 			type="url"
 			class="bw-link-input"
@@ -238,7 +245,7 @@ function blogger_writer_template( $edit_title = '', $edit_content = '', $edit_po
 	</div>
 
 	<!-- Image modal -->
-	<div class="bw-image-overlay" data-wp-bind--hidden="!state.showImageModal" data-wp-on--click="actions.closeImageModal">
+	<div class="bw-image-overlay" data-wp-bind--hidden="!state.showImageModal" data-wp-on--click="actions.closeImageModal" hidden>
 		<div class="bw-image-modal" data-wp-on--click="actions.stopPropagation">
 			<h3>Add an image</h3>
 			<label class="bw-upload-zone" id="bw-upload-zone">
@@ -269,7 +276,7 @@ function blogger_writer_template( $edit_title = '', $edit_content = '', $edit_po
 	</div>
 
 	<!-- Leave confirmation -->
-	<div class="bw-image-overlay" data-wp-bind--hidden="!state.showLeaveConfirm" data-wp-on--click="actions.cancelLeave">
+	<div class="bw-image-overlay" data-wp-bind--hidden="!state.showLeaveConfirm" data-wp-on--click="actions.cancelLeave" hidden>
 		<div class="bw-leave-modal" data-wp-on--click="actions.stopPropagation">
 			<h3>You have unsaved changes</h3>
 			<p>Are you sure you want to leave? Your work will be lost.</p>
@@ -281,7 +288,7 @@ function blogger_writer_template( $edit_title = '', $edit_content = '', $edit_po
 	</div>
 
 	<!-- Slash command menu -->
-	<div class="bw-slash-menu" data-wp-bind--hidden="!state.showSlashMenu">
+	<div class="bw-slash-menu" data-wp-bind--hidden="!state.showSlashMenu" hidden>
 		<div class="bw-slash-item" data-wp-on--click="actions.insertHeading" data-wp-on--mousedown="actions.preventToolbarBlur">
 			<span class="bw-slash-icon">H</span>
 			<div><strong>Heading</strong><span class="bw-slash-desc">Large section heading</span></div>
@@ -305,7 +312,7 @@ function blogger_writer_template( $edit_title = '', $edit_content = '', $edit_po
 	</div>
 
 	<!-- Video modal -->
-	<div class="bw-image-overlay" data-wp-bind--hidden="!state.showVideoModal" data-wp-on--click="actions.closeVideoModal">
+	<div class="bw-image-overlay" data-wp-bind--hidden="!state.showVideoModal" data-wp-on--click="actions.closeVideoModal" hidden>
 		<div class="bw-image-modal" data-wp-on--click="actions.stopPropagation">
 			<h3>Embed a video</h3>
 			<input
@@ -323,12 +330,12 @@ function blogger_writer_template( $edit_title = '', $edit_content = '', $edit_po
 	<div class="bw-cat-fab" data-wp-on--click="actions.toggleCatPicker">
 		<span class="bw-cat-fab-icon dashicons dashicons-admin-generic"></span>
 	</div>
-	<div class="bw-cat-popover" data-wp-bind--hidden="!state.showCatPicker">
+	<div class="bw-cat-popover" data-wp-bind--hidden="!state.showCatPicker" hidden>
 		<div class="bw-cat-popover-header">Categories</div>
 		<div class="bw-cat-popover-list">
 			<?php foreach ( $categories_data as $i => $cat ) : ?>
 			<button
-				class="bw-cat<?php echo $cat['selected'] ? ' bw-cat-selected' : ''; ?>"
+				class="bw-cat<?php echo esc_attr( $cat['selected'] ? ' bw-cat-selected' : '' ); ?>"
 				data-wp-on--click="actions.toggleCategory"
 				data-wp-context='<?php echo esc_attr( wp_json_encode( array( 'catIndex' => $i, 'catSelected' => $cat['selected'] ) ) ); ?>'
 				data-wp-class--bw-cat-selected="context.catSelected"
@@ -360,7 +367,7 @@ add_action( 'admin_bar_menu', function ( $wp_admin_bar ) {
 	$wp_admin_bar->remove_node( 'site-editor' );
 
 	$wp_admin_bar->add_node( array(
-		'id'    => 'blogger-write',
+		'id'    => 'jdfw-write',
 		'title' => 'Write',
 		'href'  => home_url( '/write/' ),
 		'meta'  => array( 'title' => 'Write a new post' ),
@@ -371,7 +378,7 @@ add_action( 'admin_bar_menu', function ( $wp_admin_bar ) {
 		$post_id = get_queried_object_id();
 		if ( $post_id && current_user_can( 'edit_post', $post_id ) ) {
 			$wp_admin_bar->add_node( array(
-				'id'    => 'blogger-edit-post',
+				'id'    => 'jdfw-edit-post',
 				'title' => 'Edit Post',
 				'href'  => home_url( '/write/?post=' . $post_id ),
 				'meta'  => array( 'title' => 'Edit this post' ),
@@ -379,3 +386,19 @@ add_action( 'admin_bar_menu', function ( $wp_admin_bar ) {
 		}
 	}
 }, 999 );
+
+
+/**
+ * Add a "Write" row action to the Posts list table, so posts can be opened in
+ * the distraction-free writer straight from the admin Posts screen.
+ */
+add_filter( 'post_row_actions', function ( $actions, $post ) {
+	if ( 'post' === $post->post_type && current_user_can( 'edit_post', $post->ID ) ) {
+		$actions['jdfw_write'] = sprintf(
+			'<a href="%s">%s</a>',
+			esc_url( home_url( '/write/?post=' . $post->ID ) ),
+			esc_html__( 'Write', 'jamies-distraction-free-writer' )
+		);
+	}
+	return $actions;
+}, 10, 2 );

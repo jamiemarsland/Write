@@ -1,4 +1,4 @@
-/* Blogger Writer — Distraction-free writing */
+/* Jamie's Distraction-Free Writer — Distraction-free writing */
 
 /* ===== Reset for the writing page ===== */
 .bw-app {
@@ -489,8 +489,17 @@ body.admin-bar .bw-main {
 	text-wrap: stable;
 }
 
-.bw-content:empty::before {
-	content: attr(data-placeholder);
+/*
+ * Placeholder text for the writing area. It shows only while the editor is idle
+ * (not focused) and empty — so clicking in makes it vanish and drops the cursor
+ * at the start, rather than leaving the caret stranded after the placeholder.
+ *
+ * Two cases are covered: a truly empty box, and the lone seeded empty paragraph
+ * (<p><br></p>) the editor inserts so the cursor has somewhere to start.
+ */
+.bw-content:not(:focus-within):empty::before,
+.bw-content:not(:focus-within) > p:only-child:has( > br:only-child )::before {
+	content: "Tell your story...";
 	color: #ccc;
 	pointer-events: none;
 }
@@ -1116,4 +1125,9 @@ body.admin-bar .bw-main {
 	.bw-btn-draft {
 		display: none;
 	}
+}
+
+/* Ensure toolbar buttons hidden via the Interactivity API actually hide. */
+.bw-btn[hidden] {
+	display: none !important;
 }

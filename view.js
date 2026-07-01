@@ -418,6 +418,12 @@ const { state } = store( 'jamies-distraction-free-writer', {
 		formatHeading: false,
 		formatQuote: false,
 		imageUrl: '',
+		// Unsaved-changes flag: the Save/Update button stays disabled until true.
+		isDirty: false,
+		// The Save/Update button is disabled while saving or with no unsaved change.
+		get saveDisabled() {
+			return state.isSaving || ! state.isDirty;
+		},
 		// Hide "Save draft" once the post is (or has just been) published —
 		// saving a published post as a draft would unpublish it.
 		get hideSaveDraft() {
@@ -426,7 +432,13 @@ const { state } = store( 'jamies-distraction-free-writer', {
 	},
 
 	actions: {
+		// Flag that there are unsaved changes (enables the Save/Update button).
+		markDirty() {
+			state.isDirty = true;
+		},
+
 		updateTitle() {
+			state.isDirty = true;
 			const el = getElement();
 			state.title = el.ref.value;
 			// Auto-resize textarea height for browsers without field-sizing support.
@@ -772,10 +784,12 @@ const { state } = store( 'jamies-distraction-free-writer', {
 		},
 
 		toggleFeaturedImage() {
+			state.isDirty = true;
 			state.setAsFeatured = ! state.setAsFeatured;
 		},
 
 		updateImageAlt() {
+			state.isDirty = true;
 			const el = getElement();
 			state.imageAlt = el.ref.value;
 		},
@@ -801,11 +815,13 @@ const { state } = store( 'jamies-distraction-free-writer', {
 		},
 
 		updateImageUrl() {
+			state.isDirty = true;
 			const el = getElement();
 			state.imageUrl = el.ref.value;
 		},
 
 		insertImageFromUrl() {
+			state.isDirty = true;
 			if ( ! state.imageUrl ) return;
 
 			// Handle featured image from uploaded media.
@@ -859,6 +875,7 @@ const { state } = store( 'jamies-distraction-free-writer', {
 		},
 
 		async uploadImage() {
+			state.isDirty = true;
 			const el = getElement();
 			const file = el.ref.files[ 0 ];
 			if ( ! file ) return;
@@ -915,6 +932,7 @@ const { state } = store( 'jamies-distraction-free-writer', {
 		},
 
 		insertHeading() {
+			state.isDirty = true;
 			insertNewBlock( 'h2' );
 		},
 
@@ -927,6 +945,7 @@ const { state } = store( 'jamies-distraction-free-writer', {
 		},
 
 		insertQuote() {
+			state.isDirty = true;
 			insertNewBlock( 'blockquote' );
 		},
 
@@ -956,6 +975,7 @@ const { state } = store( 'jamies-distraction-free-writer', {
 		},
 
 		insertVideoEmbed() {
+			state.isDirty = true;
 			if ( ! state.videoUrl ) return;
 
 			const embedUrl = getEmbedUrl( state.videoUrl );
@@ -1006,6 +1026,7 @@ const { state } = store( 'jamies-distraction-free-writer', {
 		},
 
 		insertDivider() {
+			state.isDirty = true;
 			clearSlashText();
 			const hr = document.createElement( 'hr' );
 			const p = document.createElement( 'p' );
@@ -1065,6 +1086,7 @@ const { state } = store( 'jamies-distraction-free-writer', {
 		},
 
 		toggleCategory() {
+			state.isDirty = true;
 			const ctx = getContext();
 			ctx.catSelected = ! ctx.catSelected;
 			state.categories[ ctx.catIndex ].selected = ctx.catSelected;

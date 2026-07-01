@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Jamie's Distraction-Free Writer
  * Description: A beautiful, distraction-free front-end writing experience. Create and edit posts from a clean /write/ page without touching wp-admin.
- * Version: 1.0.3
+ * Version: 1.0.4
  * Requires at least: 6.5
  * Requires PHP: 8.0
  * Author: Jamie Marsland
@@ -176,14 +176,14 @@ function jdfw_template( $edit_title = '', $edit_content = '', $edit_post_id = 0,
 			<button
 				class="bw-btn bw-btn-draft"
 				data-wp-on--click="actions.saveDraft"
-				data-wp-bind--disabled="state.isSaving"
+				data-wp-bind--disabled="state.saveDisabled"
 				data-wp-bind--hidden="state.hideSaveDraft"
 				<?php echo ( 'publish' === $post_status ) ? 'hidden' : ''; ?>
 			>Save draft</button>
 			<button
 				class="bw-btn bw-btn-publish"
 				data-wp-on--click="actions.publish"
-				data-wp-bind--disabled="state.isSaving"
+				data-wp-bind--disabled="state.saveDisabled"
 				data-wp-text="state.publishLabel"
 			><?php echo esc_html( $edit_post_id ? 'Update' : 'Publish' ); ?></button>
 		</div>
@@ -204,6 +204,7 @@ function jdfw_template( $edit_title = '', $edit_content = '', $edit_post_id = 0,
 			<div
 				class="bw-content"
 				contenteditable="true"
+				data-wp-on--input="actions.markDirty"
 				data-wp-on--mouseup="actions.checkFormatting"
 				data-wp-on--keyup="actions.checkFormatting"
 				data-wp-on--keydown="actions.handleKeyDown"

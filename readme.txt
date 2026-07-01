@@ -4,7 +4,7 @@ Tags: writing, front-end editor, distraction-free, interactivity api
 Requires at least: 6.5
 Tested up to: 7.0
 Requires PHP: 8.0
-Stable tag: 1.0.3
+Stable tag: 1.0.4
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -49,6 +49,9 @@ Yes. The writing page is a self-contained full-screen experience, and published 
 No. The plugin is built on the WordPress Interactivity API and ships ready to run.
 
 == Changelog ==
+
+= 1.0.4 =
+* The Save draft / Publish / Update buttons are now disabled until you make a change, so you can't save when nothing has changed.
 
 = 1.0.3 =
 * Added a live demo preview (WordPress Playground blueprint).

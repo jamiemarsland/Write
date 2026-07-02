@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Jamie's Distraction-Free Writer
  * Description: A beautiful, distraction-free front-end writing experience. Create and edit posts from a clean /write/ page without touching wp-admin.
- * Version: 1.0.4
+ * Version: 1.0.5
  * Requires at least: 6.5
  * Requires PHP: 8.0
  * Author: Jamie Marsland
@@ -159,12 +159,15 @@ function jdfw_template( $edit_title = '', $edit_content = '', $edit_post_id = 0,
 </head>
 <body <?php body_class(); ?>>
 
-<div data-wp-interactive="jamies-distraction-free-writer" class="bw-app">
+<div data-wp-interactive="jamies-distraction-free-writer" class="bw-app" data-wp-class--bw-dark="state.darkMode">
 
 	<!-- Top bar -->
 	<header class="bw-topbar">
 		<a href="<?php echo esc_url( home_url( '/' ) ); ?>" class="bw-back" title="Back to site" data-wp-on--click="actions.handleBack">&larr;</a>
 		<button class="bw-help-toggle" data-wp-on--click="actions.toggleHelp" title="Shortcuts">?</button>
+		<button class="bw-theme-toggle" data-wp-on--click="actions.toggleDark" title="Toggle dark mode" aria-label="Toggle dark mode">
+			<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+		</button>
 		<div class="bw-help-popover" data-wp-bind--hidden="!state.showHelp" hidden>
 			<div class="bw-help-title">Tips</div>
 			<div class="bw-help-row"><kbd>/</kbd><span>Insert a heading, image, video, quote or divider</span></div>

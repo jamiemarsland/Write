@@ -418,6 +418,8 @@ const { state } = store( 'jamies-distraction-free-writer', {
 		formatHeading: false,
 		formatQuote: false,
 		imageUrl: '',
+		// Remembered light/dark theme choice (persisted in localStorage).
+		darkMode: false,
 		// Unsaved-changes flag: the Save/Update button stays disabled until true.
 		isDirty: false,
 		// The Save/Update button is disabled while saving or with no unsaved change.
@@ -435,6 +437,14 @@ const { state } = store( 'jamies-distraction-free-writer', {
 		// Flag that there are unsaved changes (enables the Save/Update button).
 		markDirty() {
 			state.isDirty = true;
+		},
+
+		// Toggle light/dark theme and remember the choice.
+		toggleDark() {
+			state.darkMode = ! state.darkMode;
+			try {
+				window.localStorage.setItem( 'jdfw-dark', state.darkMode ? '1' : '0' );
+			} catch ( e ) {}
 		},
 
 		updateTitle() {
@@ -1101,6 +1111,17 @@ const { state } = store( 'jamies-distraction-free-writer', {
 		},
 	},
 } );
+
+// Restore the saved dark-mode preference as early as possible to reduce any flash.
+try {
+	if ( window.localStorage.getItem( 'jdfw-dark' ) === '1' ) {
+		state.darkMode = true;
+		const appEl = document.querySelector( '.bw-app' );
+		if ( appEl ) {
+			appEl.classList.add( 'bw-dark' );
+		}
+	}
+} catch ( e ) {}
 
 async function savePost( postStatus ) {
 	if ( ! state.title.trim() ) {

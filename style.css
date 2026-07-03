@@ -1652,38 +1652,49 @@ body.admin-bar .bw-insights {
 	}
 }
 
-/* ===== Writing Insights — inline highlights ===== */
-.bw-content .wi-hl-very-long {
-	background: rgba(239, 68, 68, 0.18);
-	border-bottom: 2px solid rgba(239, 68, 68, 0.5);
+/* ===== Writing Insights — inline highlights (CSS Custom Highlight API) ===== */
+::highlight(wi-very-long) {
+	background-color: rgba(239, 68, 68, 0.18);
+	text-decoration: underline;
+	text-decoration-color: rgba(239, 68, 68, 0.6);
+	text-decoration-thickness: 2px;
 }
 
-.bw-content .wi-hl-long {
-	background: rgba(251, 146, 60, 0.18);
-	border-bottom: 2px solid rgba(251, 146, 60, 0.5);
+::highlight(wi-long) {
+	background-color: rgba(251, 146, 60, 0.18);
+	text-decoration: underline;
+	text-decoration-color: rgba(251, 146, 60, 0.6);
+	text-decoration-thickness: 2px;
 }
 
-.bw-content .wi-hl-passive {
-	background: rgba(59, 130, 246, 0.15);
-	border-bottom: 2px dotted rgba(59, 130, 246, 0.6);
+::highlight(wi-passive) {
+	background-color: rgba(59, 130, 246, 0.15);
+	text-decoration: underline dotted;
+	text-decoration-color: rgba(59, 130, 246, 0.75);
 }
 
-.bw-content .wi-hl-weak {
-	background: rgba(168, 85, 247, 0.15);
-	text-decoration: underline dotted rgba(168, 85, 247, 0.7);
+::highlight(wi-weak) {
+	background-color: rgba(168, 85, 247, 0.15);
+	text-decoration: underline dotted;
+	text-decoration-color: rgba(168, 85, 247, 0.8);
 }
 
-.bw-content .wi-hl-transition-overused {
-	background: rgba(245, 158, 11, 0.18);
-	border-bottom: 2px dotted rgba(245, 158, 11, 0.6);
+::highlight(wi-transition-overused) {
+	background-color: rgba(245, 158, 11, 0.18);
+	text-decoration: underline dotted;
+	text-decoration-color: rgba(245, 158, 11, 0.7);
 }
 
-.bw-content .wi-hl-caps {
-	background: rgba(234, 179, 8, 0.2);
-	border-bottom: 2px solid rgba(234, 179, 8, 0.5);
+::highlight(wi-caps) {
+	background-color: rgba(234, 179, 8, 0.2);
+	text-decoration: underline;
+	text-decoration-color: rgba(234, 179, 8, 0.6);
+	text-decoration-thickness: 2px;
 }
 
-.bw-content .wi-hl-excess-punct {
-	background: rgba(239, 68, 68, 0.2);
-	border-bottom: 2px solid rgba(239, 68, 68, 0.5);
+::highlight(wi-excess-punct) {
+	background-color: rgba(239, 68, 68, 0.2);
+	text-decoration: underline;
+	text-decoration-color: rgba(239, 68, 68, 0.6);
+	text-decoration-thickness: 2px;
 }

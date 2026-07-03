@@ -446,129 +446,76 @@ export function renderPanel( r ) {
 }
 
 /* -------------------------------------------------------------------------- */
-/* Inline highlights (Stage 2)                                                */
+/* Inline highlights — CSS Custom Highlight API (no DOM mutation)              */
 /*                                                                            */
-/* Highlight offsets from analyzeDocument() are in the getPlainText() model   */
-/* (blocks joined by "\n\n"). We map each highlight to its block, then wrap   */
-/* the character range in <span class="wi-hl-TYPE" title="…"> nodes. Wrapping  */
-/* never changes textContent, so caret offsets stay valid across re-renders.  */
+/* Ranges are registered with the browser's highlight registry and painted    */
+/* via ::highlight() in CSS. Nothing is inserted into .bw-content, so the      */
+/* caret is never disturbed and nothing needs stripping before save.          */
 /* -------------------------------------------------------------------------- */
 
-// Remove every highlight span, restoring the original text nodes.
-export function stripHighlights( contentEl ) {
-	const spans = contentEl.querySelectorAll( 'span[class*="wi-hl-"]' );
-	spans.forEach( ( span ) => {
-		const parent = span.parentNode;
-		while ( span.firstChild ) {
-			parent.insertBefore( span.firstChild, span );
-		}
-		parent.removeChild( span );
-	} );
-	contentEl.normalize();
+const HL_NAMES = [ 'very-long', 'long', 'passive', 'weak', 'transition-overused', 'caps', 'excess-punct' ];
+
+function highlightApiSupported() {
+	return (
+		typeof window !== 'undefined' &&
+		window.CSS &&
+		window.CSS.highlights &&
+		typeof window.Highlight === 'function'
+	);
 }
 
-// Wrap [s, e) of a single text node in a highlight span.
-function wrapTextPortion( textNode, s, e, cls, title ) {
-	let node = textNode;
-	if ( s > 0 ) {
-		node = node.splitText( s );
-	}
-	if ( node.length > e - s ) {
-		node.splitText( e - s );
-	}
-	const span = document.createElement( 'span' );
-	span.className = cls;
-	if ( title ) {
-		span.setAttribute( 'title', title );
-	}
-	node.parentNode.insertBefore( span, node );
-	span.appendChild( node );
-}
-
-// Apply one highlight within a block element, over local [start, end).
-function applyOneHighlight( blockEl, start, end, cls, title ) {
-	const walker = document.createTreeWalker( blockEl, NodeFilter.SHOW_TEXT );
+// Resolve a character offset within an element's text to { node, offset }.
+function nodeOffsetAt( root, target ) {
+	const walker = document.createTreeWalker( root, NodeFilter.SHOW_TEXT );
 	let pos = 0;
-	const segments = [];
 	let n;
+	let last = null;
 	while ( ( n = walker.nextNode() ) ) {
-		const nodeStart = pos;
-		const nodeEnd = pos + n.length;
-		pos = nodeEnd;
-		const from = Math.max( start, nodeStart );
-		const to = Math.min( end, nodeEnd );
-		if ( from < to ) {
-			segments.push( { node: n, s: from - nodeStart, e: to - nodeStart } );
+		const next = pos + n.length;
+		if ( target <= next ) {
+			return { node: n, offset: target - pos };
 		}
+		pos = next;
+		last = n;
 	}
-	// Each segment is in a distinct text node, so wrapping one doesn't disturb
-	// the offsets of the others.
-	for ( const seg of segments ) {
-		wrapTextPortion( seg.node, seg.s, seg.e, cls, title );
+	return last ? { node: last, offset: last.length } : null;
+}
+
+export function clearHighlights() {
+	if ( ! highlightApiSupported() ) {
+		return;
+	}
+	for ( const name of HL_NAMES ) {
+		window.CSS.highlights.delete( 'wi-' + name );
 	}
 }
 
-// Apply all highlights. `blocks` is the map returned by getPlainText().
 export function applyHighlights( contentEl, highlights, blocks ) {
+	if ( ! highlightApiSupported() ) {
+		return;
+	}
+	const byType = {};
 	for ( const h of highlights ) {
 		const block = blocks.find( ( b ) => h.from >= b.start && h.to <= b.end );
 		if ( ! block ) {
-			continue; // crosses a block boundary or targets media — skip.
+			continue;
 		}
-		applyOneHighlight(
-			block.el,
-			h.from - block.start,
-			h.to - block.start,
-			'wi-hl-' + h.type,
-			h.tooltip
-		);
-	}
-}
-
-/* -------------------------------------------------------------------------- */
-/* Caret preservation across re-render                                        */
-/* -------------------------------------------------------------------------- */
-
-// Absolute character offset of the caret within contentEl (raw text, no
-// separators). Returns null if the caret isn't inside the editor.
-export function getCaretOffset( contentEl ) {
-	const sel = window.getSelection();
-	if ( ! sel || sel.rangeCount === 0 ) {
-		return null;
-	}
-	const range = sel.getRangeAt( 0 );
-	if ( ! contentEl.contains( range.startContainer ) ) {
-		return null;
-	}
-	const pre = document.createRange();
-	pre.selectNodeContents( contentEl );
-	try {
-		pre.setEnd( range.startContainer, range.startOffset );
-	} catch ( e ) {
-		return null;
-	}
-	return pre.cloneContents().textContent.length;
-}
-
-// Restore the caret to a raw-text character offset.
-export function setCaretOffset( contentEl, offset ) {
-	if ( offset == null ) {
-		return;
-	}
-	const walker = document.createTreeWalker( contentEl, NodeFilter.SHOW_TEXT );
-	let pos = 0;
-	let n;
-	while ( ( n = walker.nextNode() ) ) {
-		const next = pos + n.length;
-		if ( offset <= next ) {
-			const range = document.createRange();
-			range.setStart( n, Math.max( 0, offset - pos ) );
-			range.collapse( true );
-			const sel = window.getSelection();
-			sel.removeAllRanges();
-			sel.addRange( range );
-			return;
+		const startPos = nodeOffsetAt( block.el, h.from - block.start );
+		const endPos = nodeOffsetAt( block.el, h.to - block.start );
+		if ( ! startPos || ! endPos ) {
+			continue;
 		}
-		pos = next;
+		const range = document.createRange();
+		try {
+			range.setStart( startPos.node, startPos.offset );
+			range.setEnd( endPos.node, endPos.offset );
+		} catch ( e ) {
+			continue;
+		}
+		( byType[ h.type ] || ( byType[ h.type ] = [] ) ).push( range );
+	}
+	clearHighlights();
+	for ( const type of Object.keys( byType ) ) {
+		window.CSS.highlights.set( 'wi-' + type, new window.Highlight( ...byType[ type ] ) );
 	}
 }

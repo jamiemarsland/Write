@@ -4,7 +4,7 @@ Tags: writing, front-end editor, distraction-free, interactivity api
 Requires at least: 6.5
 Tested up to: 7.0
 Requires PHP: 8.0
-Stable tag: 1.0.6
+Stable tag: 1.0.7
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -49,6 +49,9 @@ Yes. The writing page is a self-contained full-screen experience, and published 
 No. The plugin is built on the WordPress Interactivity API and ships ready to run.
 
 == Changelog ==
+
+= 1.0.7 =
+* Fixed editing jankiness (cursor jumping, double spacing) when Writing Insights was on. Inline highlights now use the browser's CSS Custom Highlight API, so they no longer modify the text as you type.
 
 = 1.0.6 =
 * Added a Writing Insights panel (bar-chart icon in the top bar): a live writing score, readability stats, a sentence-variety chart, overused words, transitions, and alerts, plus inline highlights of long sentences, passive voice and weak words as you write — all analysed privately in your browser, no AI or external calls.

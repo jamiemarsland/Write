@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Jamie's Distraction-Free Writer
  * Description: A beautiful, distraction-free front-end writing experience. Create and edit posts from a clean /write/ page without touching wp-admin.
- * Version: 1.0.6
+ * Version: 1.0.7
  * Requires at least: 6.5
  * Requires PHP: 8.0
  * Author: Jamie Marsland

@@ -5,7 +5,7 @@
  * Creates WordPress posts with proper block markup via the REST API.
  */
 import { store, getElement, getContext } from '@wordpress/interactivity';
-import { analyzeDocument, getPlainText, renderPanel, applyHighlights, stripHighlights, getCaretOffset, setCaretOffset } from './writing-insights.js';
+import { analyzeDocument, getPlainText, renderPanel, applyHighlights, clearHighlights } from './writing-insights.js';
 
 // Save/restore the selection so we can insert images after the modal closes.
 let savedRange = null;
@@ -33,11 +33,6 @@ function restoreSelection() {
 function convertToBlocks( html ) {
 	const tmp = document.createElement( 'div' );
 	tmp.innerHTML = html;
-
-	// Never serialise Writing Insights highlight spans into the saved content.
-	tmp.querySelectorAll( 'span[class*="wi-hl-"]' ).forEach( ( span ) => {
-		span.replaceWith( ...span.childNodes );
-	} );
 
 	const blocks = [];
 
@@ -466,10 +461,7 @@ const { state } = store( 'jamies-distraction-free-writer', {
 				runInsights();
 			} else {
 				// Remove all inline highlights when the panel closes.
-				const contentEl = document.querySelector( '.bw-content' );
-				if ( contentEl ) {
-					stripHighlights( contentEl );
-				}
+				clearHighlights();
 			}
 		},
 
@@ -1176,14 +1168,10 @@ function runInsights() {
 	if ( ! contentEl || ! panelEl ) {
 		return;
 	}
-	// Preserve the caret across the strip/re-wrap of highlight spans.
-	const caret = getCaretOffset( contentEl );
-	stripHighlights( contentEl );
 	const { text, blocks } = getPlainText( contentEl );
 	const result = analyzeDocument( text );
 	panelEl.innerHTML = renderPanel( result );
 	applyHighlights( contentEl, result.highlights, blocks );
-	setCaretOffset( contentEl, caret );
 }
 
 // Restore the saved Writing Insights preference.

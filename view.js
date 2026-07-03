@@ -5,6 +5,7 @@
  * Creates WordPress posts with proper block markup via the REST API.
  */
 import { store, getElement, getContext } from '@wordpress/interactivity';
+import { analyzeDocument, getPlainText, renderPanel, applyHighlights, stripHighlights, getCaretOffset, setCaretOffset } from './writing-insights.js';
 
 // Save/restore the selection so we can insert images after the modal closes.
 let savedRange = null;
@@ -32,6 +33,11 @@ function restoreSelection() {
 function convertToBlocks( html ) {
 	const tmp = document.createElement( 'div' );
 	tmp.innerHTML = html;
+
+	// Never serialise Writing Insights highlight spans into the saved content.
+	tmp.querySelectorAll( 'span[class*="wi-hl-"]' ).forEach( ( span ) => {
+		span.replaceWith( ...span.childNodes );
+	} );
 
 	const blocks = [];
 
@@ -420,6 +426,8 @@ const { state } = store( 'jamies-distraction-free-writer', {
 		imageUrl: '',
 		// Remembered light/dark theme choice (persisted in localStorage).
 		darkMode: false,
+		// Writing Insights panel open/closed (persisted in localStorage).
+		showInsights: false,
 		// Unsaved-changes flag: the Save/Update button stays disabled until true.
 		isDirty: false,
 		// The Save/Update button is disabled while saving or with no unsaved change.
@@ -437,6 +445,7 @@ const { state } = store( 'jamies-distraction-free-writer', {
 		// Flag that there are unsaved changes (enables the Save/Update button).
 		markDirty() {
 			state.isDirty = true;
+			scheduleInsights();
 		},
 
 		// Toggle light/dark theme and remember the choice.
@@ -445,6 +454,23 @@ const { state } = store( 'jamies-distraction-free-writer', {
 			try {
 				window.localStorage.setItem( 'jdfw-dark', state.darkMode ? '1' : '0' );
 			} catch ( e ) {}
+		},
+
+		// Toggle the Writing Insights panel and remember the choice.
+		toggleInsights() {
+			state.showInsights = ! state.showInsights;
+			try {
+				window.localStorage.setItem( 'jdfw-insights', state.showInsights ? '1' : '0' );
+			} catch ( e ) {}
+			if ( state.showInsights ) {
+				runInsights();
+			} else {
+				// Remove all inline highlights when the panel closes.
+				const contentEl = document.querySelector( '.bw-content' );
+				if ( contentEl ) {
+					stripHighlights( contentEl );
+				}
+			}
 		},
 
 		updateTitle() {
@@ -1120,6 +1146,55 @@ try {
 		if ( appEl ) {
 			appEl.classList.add( 'bw-dark' );
 		}
+	}
+} catch ( e ) {}
+
+/* -------------------------------------------------------------------------- */
+/* Writing Insights wiring                                                    */
+/* -------------------------------------------------------------------------- */
+
+let insightsTimer = null;
+
+// Debounced refresh, called on every edit while the panel is open.
+function scheduleInsights() {
+	if ( ! state.showInsights ) {
+		return;
+	}
+	if ( insightsTimer ) {
+		window.clearTimeout( insightsTimer );
+	}
+	insightsTimer = window.setTimeout( runInsights, 280 );
+}
+
+// Analyse the current content and re-render the panel.
+function runInsights() {
+	if ( ! state.showInsights ) {
+		return;
+	}
+	const contentEl = document.querySelector( '.bw-content' );
+	const panelEl = document.getElementById( 'bw-insights' );
+	if ( ! contentEl || ! panelEl ) {
+		return;
+	}
+	// Preserve the caret across the strip/re-wrap of highlight spans.
+	const caret = getCaretOffset( contentEl );
+	stripHighlights( contentEl );
+	const { text, blocks } = getPlainText( contentEl );
+	const result = analyzeDocument( text );
+	panelEl.innerHTML = renderPanel( result );
+	applyHighlights( contentEl, result.highlights, blocks );
+	setCaretOffset( contentEl, caret );
+}
+
+// Restore the saved Writing Insights preference.
+try {
+	if ( window.localStorage.getItem( 'jdfw-insights' ) === '1' ) {
+		state.showInsights = true;
+		const appEl = document.querySelector( '.bw-app' );
+		if ( appEl ) {
+			appEl.classList.add( 'bw-insights-open' );
+		}
+		runInsights();
 	}
 } catch ( e ) {}
 

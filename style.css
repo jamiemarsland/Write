@@ -1334,3 +1334,356 @@ body.admin-bar .bw-main {
 .bw-app.bw-dark .bw-image-divider::after {
 	background: #2c2f36;
 }
+
+/* ===== Writing Insights toggle (top bar) ===== */
+.bw-insights-toggle {
+	width: 28px;
+	height: 28px;
+	border-radius: 50%;
+	border: 1px solid #e0e0e0;
+	background: transparent;
+	color: #bbb;
+	cursor: pointer;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	margin-left: 8px;
+	padding: 0;
+	transition: all 0.15s ease;
+}
+
+.bw-insights-toggle:hover {
+	border-color: #999;
+	color: #666;
+}
+
+.bw-insights-toggle.bw-active {
+	background: rgba(33, 113, 177, 0.12);
+	border-color: rgba(33, 113, 177, 0.5);
+	color: #2171b1;
+}
+
+/* ===== Writing Insights panel ===== */
+.bw-insights {
+	position: fixed;
+	top: 56px;
+	right: 0;
+	bottom: 0;
+	width: 320px;
+	z-index: 90;
+	background: #fff;
+	border-left: 1px solid #f0f0f0;
+	overflow-y: auto;
+	font-size: 13px;
+	color: #333;
+	-webkit-overflow-scrolling: touch;
+}
+
+.bw-insights[hidden] {
+	display: none;
+}
+
+body.admin-bar .bw-insights {
+	top: 88px; /* 56 topbar + 32 admin bar */
+}
+
+.bw-app.bw-insights-open .bw-main {
+	padding-right: 320px;
+}
+
+.wi-section {
+	padding: 18px 20px;
+	border-bottom: 1px solid #f2f2f2;
+}
+
+.wi-section-label {
+	font-size: 11px;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.08em;
+	color: #9aa0a6;
+	margin-bottom: 14px;
+}
+
+/* Score */
+.wi-score {
+	display: flex;
+	align-items: center;
+	gap: 14px;
+}
+
+.wi-gauge {
+	flex-shrink: 0;
+}
+
+.wi-gauge-track {
+	color: #eceff1;
+}
+
+.wi-gauge-num {
+	font-size: 15px;
+	font-weight: 700;
+	fill: #1a1a1a;
+}
+
+.wi-score-label {
+	font-size: 15px;
+	font-weight: 700;
+}
+
+.wi-score-desc {
+	font-size: 12px;
+	color: #888;
+	margin-top: 2px;
+}
+
+/* Readability stats */
+.wi-stat {
+	display: flex;
+	justify-content: space-between;
+	align-items: baseline;
+	padding: 5px 0;
+}
+
+.wi-stat-label {
+	color: #666;
+}
+
+.wi-stat-value {
+	font-weight: 600;
+	color: #1a1a1a;
+}
+
+/* Sentence variety bars */
+.wi-bar-row {
+	display: grid;
+	grid-template-columns: 92px 1fr 24px;
+	align-items: center;
+	gap: 10px;
+	padding: 4px 0;
+}
+
+.wi-bar-label {
+	color: #666;
+	font-size: 12px;
+}
+
+.wi-bar-track {
+	height: 6px;
+	background: #eceff1;
+	border-radius: 3px;
+	overflow: hidden;
+}
+
+.wi-bar-fill {
+	display: block;
+	height: 100%;
+	border-radius: 3px;
+	min-width: 2px;
+	transition: width 0.25s ease;
+}
+
+.wi-bar-count {
+	text-align: right;
+	font-weight: 600;
+	color: #444;
+	font-size: 12px;
+}
+
+.wi-warn {
+	margin-top: 10px;
+	font-size: 12px;
+	color: #b45309;
+}
+
+/* Active highlights legend */
+.wi-legend-row {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	padding: 5px 0;
+}
+
+.wi-legend-row.wi-dim {
+	opacity: 0.3;
+}
+
+.wi-swatch {
+	width: 12px;
+	height: 12px;
+	border-radius: 3px;
+	flex-shrink: 0;
+}
+
+.wi-legend-label {
+	flex: 1;
+	color: #444;
+	font-size: 12px;
+}
+
+.wi-legend-count {
+	font-weight: 600;
+	color: #444;
+}
+
+/* Overused word pills */
+.wi-pills {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
+}
+
+.wi-pill {
+	background: rgba(239, 68, 68, 0.1);
+	color: #b91c1c;
+	border-radius: 12px;
+	padding: 3px 10px;
+	font-size: 12px;
+}
+
+.wi-pill b {
+	font-weight: 700;
+}
+
+/* Transition words */
+.wi-trans-row {
+	display: flex;
+	justify-content: space-between;
+	padding: 4px 0;
+	font-size: 12px;
+	color: #444;
+}
+
+.wi-trans-row.wi-trans-over {
+	color: #b45309;
+	font-weight: 600;
+}
+
+.wi-trans-count {
+	color: #888;
+}
+
+.wi-trans-row.wi-trans-over .wi-trans-count {
+	color: #b45309;
+}
+
+/* Alerts */
+.wi-alert {
+	background: rgba(245, 158, 11, 0.1);
+	border: 1px solid rgba(245, 158, 11, 0.3);
+	color: #92400e;
+	border-radius: 6px;
+	padding: 8px 10px;
+	font-size: 12px;
+	margin-bottom: 8px;
+}
+
+.wi-alert:last-child {
+	margin-bottom: 0;
+}
+
+/* ===== Writing Insights — dark mode ===== */
+.bw-app.bw-dark .bw-insights-toggle {
+	border-color: #3a3f47;
+	color: #9aa0a6;
+}
+
+.bw-app.bw-dark .bw-insights-toggle:hover {
+	border-color: #5a616b;
+	color: #fff;
+}
+
+.bw-app.bw-dark .bw-insights-toggle.bw-active {
+	background: rgba(106, 176, 230, 0.18);
+	border-color: rgba(106, 176, 230, 0.5);
+	color: #6ab0e6;
+}
+
+.bw-app.bw-dark .bw-insights {
+	background: #1b1e23;
+	border-left-color: #2c2f36;
+	color: #d4d7db;
+}
+
+.bw-app.bw-dark .wi-section {
+	border-bottom-color: #2c2f36;
+}
+
+.bw-app.bw-dark .wi-gauge-track {
+	color: #2c2f36;
+}
+
+.bw-app.bw-dark .wi-gauge-num,
+.bw-app.bw-dark .wi-stat-value {
+	fill: #f2f2f2;
+	color: #f2f2f2;
+}
+
+.bw-app.bw-dark .wi-stat-label,
+.bw-app.bw-dark .wi-bar-label,
+.bw-app.bw-dark .wi-legend-label,
+.bw-app.bw-dark .wi-legend-count,
+.bw-app.bw-dark .wi-bar-count,
+.bw-app.bw-dark .wi-trans-row {
+	color: #b0b4b9;
+}
+
+.bw-app.bw-dark .wi-score-desc {
+	color: #8b9096;
+}
+
+.bw-app.bw-dark .wi-bar-track {
+	background: #2c2f36;
+}
+
+.bw-app.bw-dark .wi-pill {
+	background: rgba(239, 68, 68, 0.16);
+	color: #f87171;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 900px) {
+	.bw-insights {
+		width: 100%;
+		border-left: none;
+	}
+	.bw-app.bw-insights-open .bw-main {
+		padding-right: 24px;
+	}
+}
+
+/* ===== Writing Insights — inline highlights ===== */
+.bw-content .wi-hl-very-long {
+	background: rgba(239, 68, 68, 0.18);
+	border-bottom: 2px solid rgba(239, 68, 68, 0.5);
+}
+
+.bw-content .wi-hl-long {
+	background: rgba(251, 146, 60, 0.18);
+	border-bottom: 2px solid rgba(251, 146, 60, 0.5);
+}
+
+.bw-content .wi-hl-passive {
+	background: rgba(59, 130, 246, 0.15);
+	border-bottom: 2px dotted rgba(59, 130, 246, 0.6);
+}
+
+.bw-content .wi-hl-weak {
+	background: rgba(168, 85, 247, 0.15);
+	text-decoration: underline dotted rgba(168, 85, 247, 0.7);
+}
+
+.bw-content .wi-hl-transition-overused {
+	background: rgba(245, 158, 11, 0.18);
+	border-bottom: 2px dotted rgba(245, 158, 11, 0.6);
+}
+
+.bw-content .wi-hl-caps {
+	background: rgba(234, 179, 8, 0.2);
+	border-bottom: 2px solid rgba(234, 179, 8, 0.5);
+}
+
+.bw-content .wi-hl-excess-punct {
+	background: rgba(239, 68, 68, 0.2);
+	border-bottom: 2px solid rgba(239, 68, 68, 0.5);
+}
